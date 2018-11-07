@@ -4,7 +4,7 @@ organization := "edu.colorado.cs"
 
 version := "3.4.3"
 
-scalaVersion := "2.11.8"
+scalaVersion := "2.11.12"
 
 scalacOptions ++= Seq("-unchecked", "-deprecation")
 
