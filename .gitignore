@@ -2,3 +2,4 @@
 target/
 .ivy2
 .sbt
+project/target/
