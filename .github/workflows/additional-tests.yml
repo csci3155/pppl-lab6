@@ -1,0 +1,55 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Additional Tests
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  pull_request:
+    branches: [ "feedback", "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Student Repo
+        uses: actions/checkout@v3
+        timeout-minutes: 2
+        with:
+          path: student_code
+
+      # Runs a single command using the runners shell
+      - name: Master Repo
+        uses: actions/checkout@v3
+        timeout-minutes: 2
+        with:
+          token: ${{secrets.F22_3155_PAT}}
+          repository: csci3155/pppl-labdev
+          path: master_code
+
+      - name: Create Grader Resources directory
+        run: mkdir -p student_code/grader/src/test/resources
+
+      - name: Copy Additional Tests
+        run: cp -r master_code/grader/src/test/resources/lab6xc student_code/grader/src/test/resources/lab6xc
+
+      - name: Create Grader Scala directory
+        run: mkdir -p student_code/src/test/scala/jsy/grader/
+
+      - name: Copy Additional JSYTester
+        run: cp master_code/grader/src/test/scala/jsy/grader/Lab6ExtraCredit.scala student_code/src/test/scala/jsy/grader/Lab6ExtraCredit.scala
+
+      - name: Run Additional Test
+        timeout-minutes: 2
+        working-directory: ./student_code
+        run: sbt "testOnly jsy.grader.Lab6ExtraCredit"
