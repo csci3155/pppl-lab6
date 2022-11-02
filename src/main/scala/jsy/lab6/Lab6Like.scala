@@ -57,6 +57,7 @@ trait Lab6Like { a: JsyApplication =>
       case Success(r, next) if (next.atEnd) => r
       case Success(_, next) => throw SyntaxError("remaining input", next.pos)
       case Failure(msg, next) => throw SyntaxError(msg, next.pos)
+      case Error(msg,next) => throw SyntaxError(msg,next.pos)
     }
 
     def parse(s: String): RegExpr = parse(new CharSequenceReader(s))
@@ -130,7 +131,7 @@ trait Lab6Like { a: JsyApplication =>
     if (useReferenceRegExprParser) JsyParser else new JsyParser(REParser.parse)
 
   // Interface for main
-  def processFile(file: java.io.File) {
+  def processFile(file: java.io.File): Unit = {
     if (debug) {
       println("# ============================================================")
       println("# File: " + file.getName)
@@ -172,7 +173,7 @@ trait Lab6Like { a: JsyApplication =>
       println("# Stepping %s ...".format(expr))
     }
 
-    handle() {
+    handle(()) {
       val v = iterateStep(expr)
       println(pretty(v))
     }
