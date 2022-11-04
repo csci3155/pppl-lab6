@@ -48,6 +48,8 @@ object RegExprParser extends Parsers {
   def parse(next: Input): RegExpr = phrase(regexp)(next) match {
     case Success(r, _) => r
     case NoSuccess(msg, next) => throw JsyParser.SyntaxError(msg, next.pos)
+    case Error(msg,next) => throw JsyParser.SyntaxError(msg, next.pos)
+    case Failure(msg,next) => throw JsyParser.SyntaxError(msg, next.pos)
   }
 
   def parse(s: String): RegExpr = parse(new CharSequenceReader(s))

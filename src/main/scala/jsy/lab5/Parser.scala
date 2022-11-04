@@ -74,7 +74,7 @@ trait Parser { self: TokenParser =>
   
   def stmts: Parser[Option[Expr] => Expr] =
     rep(stmt) ^^ { (stmts: List[PStmt]) => (body: Option[Expr]) =>
-      (stmts :\ body){
+      (stmts foldRight body){
         case (EmpPStmt, eopt) => eopt
         case (ExprPStmt(e), None) => Some(e)
         case (ExprPStmt(e1), Some(e2)) => Some(seqExpr(e1, e2))
@@ -118,7 +118,7 @@ trait Parser { self: TokenParser =>
   def seq: Parser[Expr] =
     noseq ~ withposrep("," ~> noseq) ^^ {
       case e0 ~ es => 
-        (es :\ (None: Option[(Position,Expr)])){
+        (es foldRight (None: Option[(Position,Expr)])){
           case ((posi,ei), None) => Some(posi,ei)
           case ((posi,ei), Some((pos,e))) => Some(posi, seqExpr(ei,e) setPos pos)
         } match {
@@ -173,7 +173,7 @@ trait Parser { self: TokenParser =>
       withpos(op) ^^ { case (pos, _) => ((e1, e2) => f(e1, e2) setPos pos) }
     }
     val bopf0 :: bopfrest = binaryOperators(level)
-    (doBop(bopf0) /: bopfrest)((acc, bopf) => acc | doBop(bopf))
+    (bopfrest.foldLeft(doBop(bopf0)))((acc, bopf) => acc | doBop(bopf))
   }
 
   def unary: Parser[Expr] =
@@ -186,7 +186,7 @@ trait Parser { self: TokenParser =>
     "<" ~> ty <~ ">" ^^ (t => (e: Expr) => Unary(Cast(t), e))
     
   def call: Parser[Expr] =
-    term ~ rep(callop | derefop) ^^ { case e0 ~ callderefs => (e0 /: callderefs){ case (acc, mk) => mk(acc) } }
+    term ~ rep(callop | derefop) ^^ { case e0 ~ callderefs => (callderefs.foldLeft(e0)){ case (acc, mk) => mk(acc) } }
   
   def callop: Parser[Expr => Expr] =
     withpos("(" ~> repsep(noseq, ",") <~ ")") ^^ { case (pos, args) => (e0 => Call(e0, args) setPos pos) }
@@ -305,6 +305,8 @@ object Parser extends Parser with TokenParser {
     phrase(prog)(tokens) match {
       case Success(e, _) => e
       case NoSuccess(msg, next) => throw SyntaxError(msg, next.pos)
+      case Error(msg,next) => throw SyntaxError(msg, next.pos)
+      case Failure(msg, next) => throw SyntaxError(msg, next.pos)
     }
   }
 
@@ -312,6 +314,8 @@ object Parser extends Parser with TokenParser {
     phrase(ty)(tokens) match {
       case Success(t, _) => t
       case NoSuccess(msg, next) => throw SyntaxError(msg, next.pos)
+      case Error(msg,next) => throw SyntaxError(msg, next.pos)
+      case Failure(msg, next) => throw SyntaxError(msg, next.pos)
     }
   }
 

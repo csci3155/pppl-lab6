@@ -61,6 +61,8 @@ class JsyParser(regExprParser: String => RegExpr) extends TokenParser with lab5.
     phrase(prog)(tokens) match {
       case Success(e, _) => e.asInstanceOf[Expr]
       case NoSuccess(msg, next) => throw SyntaxError(msg, next.pos)
+      case Error(msg, next) => throw SyntaxError(msg, next.pos)
+      case Failure(msg, next) => throw SyntaxError(msg, next.pos)
     }
   }
 
@@ -68,6 +70,8 @@ class JsyParser(regExprParser: String => RegExpr) extends TokenParser with lab5.
     phrase(ty)(tokens) match {
       case Success(t, _) => t.asInstanceOf[Typ]
       case NoSuccess(msg, next) => throw SyntaxError(msg, next.pos)
+      case Error(msg, next) => throw SyntaxError(msg, next.pos)
+      case Failure(msg, next) => throw SyntaxError(msg, next.pos)
     }
   }
 
