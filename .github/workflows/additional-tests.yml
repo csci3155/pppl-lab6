@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Additional Tests
+name: AdditionalTests
 
 # Controls when the workflow will run
 on:
@@ -37,19 +37,16 @@ jobs:
           repository: csci3155/pppl-labdev
           path: master_code
 
-      - name: Create Grader Resources directory
-        run: mkdir -p student_code/grader/src/test/resources
-
-      - name: Copy Additional Tests
-        run: cp -r master_code/grader/src/test/resources/lab6xc student_code/grader/src/test/resources/lab6xc
-
-      - name: Create Grader Scala directory
-        run: mkdir -p student_code/src/test/scala/jsy/grader/
-
-      - name: Copy Additional JSYTester
-        run: cp master_code/grader/src/test/scala/jsy/grader/Lab6ExtraCredit.scala student_code/src/test/scala/jsy/grader/Lab6ExtraCredit.scala
-
-      - name: Run Additional Test
+      - name: Prep Grading
         timeout-minutes: 2
-        working-directory: ./student_code
-        run: sbt "testOnly jsy.grader.Lab6ExtraCredit"
+        run: ./gradepreplab5.sh .
+        working-directory: ./master_code
+
+      - name: Grade Extra Credit 
+        timeout-minutes: 2
+        run: ./gradelab6xc.sh ../student_code . ../ 2>&1 | tee ../grading.log
+        working-directory: ./master_code
+
+      # Display the score
+      - name: Display Score
+        run: tail -n 1 grading.log
