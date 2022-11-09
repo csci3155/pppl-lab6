@@ -7,7 +7,7 @@ object options {
 
   class Options[T](program: String, specs: List[(String, Spec, String)], anon: (String, PartialFunction[List[String], T], String)) {
     val opts: Map[String, List[String] => Option[List[String]]] =
-      (Map[String, List[String] => Option[List[String]]]() /: specs)((acc, spec) => spec match {
+      (specs.foldLeft(Map[String, List[String] => Option[List[String]]]() ))((acc, spec) => spec match {
         case (name, SetBool(setter, _), _) =>
           acc +
           (("--" + name) -> { (t: List[String]) => setter(true); Some(t) }) +
@@ -37,7 +37,7 @@ object options {
     }
       
     val descriptions: String = {
-      (specs :\ "")((spec, acc) => spec match {
+      (specs foldRight "")((spec, acc) => spec match {
         case (name, SetBool(_, default), desc) => {
           def defaultStr(b: Boolean): String =
             default map (f => if (f(b)) " (default)" else "") getOrElse("") 

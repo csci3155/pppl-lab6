@@ -4,7 +4,10 @@ import jsy.lab6.ast._
 import jsy.lab6.{Lab6Like, RegExprParser}
 import jsy.tester.JavascriptyTester
 import org.scalatest._
-import org.scalatest.prop.PropertyChecks
+import flatspec._
+import org.scalacheck.Prop._
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 import scala.util.matching.Regex
 
@@ -30,7 +33,7 @@ object Lab6Harness {
 
 }
 
-class Lab6FoldLeftTests(lab6: Lab6Like) extends FlatSpec with PropertyChecks with Matchers {
+class Lab6FoldLeftTests(lab6: Lab6Like) extends AnyFlatSpec with ScalaCheckPropertyChecks with Matchers {
   behavior of "foldLeftAndThen"
 
   it should "perform left-to-right, in-order traversal to reverse a list" in {
@@ -53,7 +56,7 @@ class Lab6FoldLeftTests(lab6: Lab6Like) extends FlatSpec with PropertyChecks wit
   }
 }
 
-class Lab6Spec(lab6: Lab6Like) extends FlatSpec {
+class Lab6Spec(lab6: Lab6Like) extends AnyFlatSpec {
   import Lab6Harness._
   import lab6._
 
@@ -139,9 +142,3 @@ class Lab6FoldLeftTestsRunner extends Lab6FoldLeftTests(jsy.student.Lab6)
 // The test expects a corresponding .ans file with the expected result.
 //class Lab6JsyTests extends JavascriptyTester(None, "lab6", Lab6)
 
-class Lab6Suite extends Suites(
-  // uncomment this line (and above) if you create .jsy tests
-  //new Lab6JsyTests,
-  new Lab6SpecRunner,
-  new Lab6FoldLeftTestsRunner
-)

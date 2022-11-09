@@ -98,7 +98,7 @@ trait Lab5Like { a: JsyApplication =>
   def iterateStep(s: String): Expr = iterateStep(lower(parse(s)))
 
   // Interface for main
-  def processFile(file: java.io.File) {
+  def processFile(file: java.io.File): Unit = {
     if (debug) {
       println("# ============================================================")
       println("# File: " + file.getName)
@@ -140,7 +140,7 @@ trait Lab5Like { a: JsyApplication =>
       println("# Stepping %s ...".format(expr))
     }
 
-    handle() {
+    handle(()) {
       val v = iterateStep(expr)
       println(pretty(v))
     }

@@ -20,4 +20,4 @@ fi
 ROOT=$(cd `dirname $0` && pwd)
 JSYJS="${ROOT}/node/jsy.js"
 
-${NODE} ${JSYJS} $@
+${NODE} "${JSYJS}" $@
