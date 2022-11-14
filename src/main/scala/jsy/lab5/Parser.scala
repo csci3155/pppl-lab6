@@ -12,7 +12,7 @@ import java.io.InputStream
 import java.io.File
 import scala.util.parsing.input.Position
 import scala.util.parsing.input.NoPosition
-import scala.collection.immutable.TreeMap
+import scala.collection.immutable.SortedMap
 
 trait JSTokens extends token.StdTokens {
   case class FloatLiteral(chars: String) extends Token {
@@ -229,10 +229,10 @@ trait Parser { self: TokenParser =>
   def ret: Parser[Expr] =
     "return" ~> expr
     
-  def record[A](sep: String, node: Map[String, A] => A, q: => Parser[A]): Parser[A] = {
+  def record[A](sep: String, node: SortedMap[String, A] => A, q: => Parser[A]): Parser[A] = {
     lazy val p = q
     "{" ~> repsep(colonpair(p), sep) <~ (opt(",") ~ "}") ^^ { flist =>
-      val fmap = flist.foldLeft(TreeMap.empty: TreeMap[String, A]){
+      val fmap = flist.foldLeft(SortedMap.empty: SortedMap[String, A]){
         case (fmap, (f, e)) => fmap + (f -> e)
       }
       node(fmap)

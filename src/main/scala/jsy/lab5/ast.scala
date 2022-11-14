@@ -1,5 +1,6 @@
 package jsy.lab5
 
+import scala.collection.immutable.SortedMap
 import scala.util.parsing.input.Positional
 import jsy.util.DoWith
 import jsy.util.Visitor
@@ -60,7 +61,7 @@ class ast {
   case class Print(e1: Expr) extends Expr 
   
   /* Objects */
-  case class Obj(fields: Map[String, Expr]) extends Expr
+  case class Obj(fields: SortedMap[String, Expr]) extends Expr
   case class GetField(e1: Expr, f: String) extends Expr
   
   /* Addresses and Mutation */
@@ -88,7 +89,7 @@ class ast {
       }
     }
   }
-  case class TObj(tfields: Map[String, Typ]) extends Typ
+  case class TObj(tfields: SortedMap[String, Typ]) extends Typ
   case class TVar(tvar: String) extends Typ
   case class TInterface(tvar: String, t: Typ) extends Typ
 
