@@ -112,7 +112,7 @@ class Lab6Spec(lab6: Lab6Like) extends AnyFlatSpec {
 
   behavior of "parse"
 
-  for ((restr,re) <- (respecs,respecsast).zipped) {
+  for ((restr,re) <- respecs lazyZip respecsast) {
     it should s"on '${restr}' produce a RegExpr AST matching the reference" in {
       assertResult(re) { REParser.parse(restr)}
     }
