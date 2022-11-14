@@ -39,7 +39,7 @@ jobs:
 
       - name: Prep Grading
         timeout-minutes: 2
-        run: ./gradepreplab5.sh .
+        run: ./gradepreplab6.sh .
         working-directory: ./master_code
 
       - name: Grade Extra Credit 
