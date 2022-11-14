@@ -60,18 +60,16 @@ class JsyParser(regExprParser: String => RegExpr) extends TokenParser with lab5.
   def parseTokens(tokens: lexical.Scanner): Expr = {
     phrase(prog)(tokens) match {
       case Success(e, _) => e.asInstanceOf[Expr]
-      case NoSuccess(msg, next) => throw SyntaxError(msg, next.pos)
-      case Error(msg, next) => throw SyntaxError(msg, next.pos)
       case Failure(msg, next) => throw SyntaxError(msg, next.pos)
+      case Error(msg, next) => throw SyntaxError(msg, next.pos)
     }
   }
 
   def parseTypTokens(tokens: lexical.Scanner): Typ = {
     phrase(ty)(tokens) match {
       case Success(t, _) => t.asInstanceOf[Typ]
-      case NoSuccess(msg, next) => throw SyntaxError(msg, next.pos)
-      case Error(msg, next) => throw SyntaxError(msg, next.pos)
       case Failure(msg, next) => throw SyntaxError(msg, next.pos)
+      case Error(msg, next) => throw SyntaxError(msg, next.pos)
     }
   }
 

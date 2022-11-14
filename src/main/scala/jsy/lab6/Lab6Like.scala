@@ -57,7 +57,7 @@ trait Lab6Like { a: JsyApplication =>
       case Success(r, next) if (next.atEnd) => r
       case Success(_, next) => throw SyntaxError("remaining input", next.pos)
       case Failure(msg, next) => throw SyntaxError(msg, next.pos)
-      case Error(msg,next) => throw SyntaxError(msg,next.pos)
+      case Error(msg, next) => throw SyntaxError(msg, next.pos)
     }
 
     def parse(s: String): RegExpr = parse(new CharSequenceReader(s))

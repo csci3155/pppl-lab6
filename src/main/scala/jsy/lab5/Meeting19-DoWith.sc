@@ -14,6 +14,10 @@
 
 def getSomething: Option[String] = ???
 
+// For example, we could consider something like:
+//
+//   def getSomething(m: Map[String,String], k: String): Option[String] = m.get(k)
+
 // An Option[A] type represents an optional value, and it is often used to
 // represent possible error in computing a result. That is, either return
 // Some of the result or None to indicate error.
@@ -62,8 +66,10 @@ def map[A,B](aopt: Option[A])(f: A => B): Option[B] = aopt match {
 
 // It is no accident that it is called 'map' like 'map' for Lists.
 
-def map[A,B](al: List[A])(f: A => B): List[B] =
-  al.foldRight(Nil: List[B]) { (h, acc) => f(h) :: acc }
+def map[A,B](al: List[A])(f: A => B): List[B] = al match {
+  case Nil => Nil
+  case h :: t => f(h) :: map(t)(f)
+}
 
 // Observe that useSomething2 would be the same code if we changed all of
 // Options to Lists.
@@ -79,6 +85,91 @@ def useSomethingList2: List[String] =
 // Key Idea: The concept of 'map' is generic to many data types. It defines
 // a generic method that takes a function f to transform "the contents" of
 // data type.
+
+// Seemingly crazy idea: We can think of a function that computes something
+// as a "collection". What's a "very generic function"?
+//
+//   W => (W,R)
+//
+// A function that returns a result of type R that "computes with" a state
+// type W.
+
+def map[W,R](adoer: W => (W,R))(f: R => B): W => (W,B) = { (w: W) =>
+  val (wp, r) = adoer(w)
+  (wp, f(r))
+}
+
+// Why does this work? Because "functions are values"
+
+// Why is this useful? You can describe and manipulate the computation
+// before "running it". You separate describing the computation from
+// its "running".
+
+// You still need to actually "run it":
+//
+// val adoer: (Int => (Int,String)) = ??? map { ??? } map { ??? }
+// val result = {
+//   val adoer_initial = ???
+//   val (_, s) = adoer(initial)
+//   s
+// }
+
+// How is separating the description of the computation from its running
+// useful?
+//
+// You can now think about libraries that allow you to write one program
+// that you can both (1) run "slowly"  on your local laptop (e.g., during
+// development) and (2) run "fast" in  the large in the cloud.
+//
+// This kind of thinking is the basis for both asynchronous code (e.g., for
+// interactive apps) and distributed code (e.g., for big data).
+//
+// What is Twitter after all? It's "just" maps and filters over strings of
+// 280 characters or less, right? It's the scaling that's hard.
+
+// This is DoWith[W,R]! DoWith[W,R] encapsulates a W => (W,R) function and
+// provides this map function (as a method of DoWith[W,R]).
+
+// Back up: What do we mean by a "state type W"?
+
+// Let us define an increment function.
+def inc(i: Int): Int = i + 1
+inc(inc(inc(0)))
+
+// The input-output Int is a "current" counter.
+
+// Let us define a counter function that returns the "current counter".
+def counter(curr: Int): (Int, Int) = (curr + 1, curr)
+
+// Let's use it.
+val (c10,ten) = counter(10)
+val varten = "var" + ten  // create a string using the counter
+s"var${ten}" // (or using string interpolation)
+val (c11,eleven) = counter(c10)
+val vareleven = "var" + eleven  // create a string using the counter
+
+// Let's wrap up the counter.
+sealed class MyDoWith[W,R](doer: W => (W,R)) {
+  def apply(w: W) = doer(w)
+
+  def map[B](f: R => B): MyDoWith[W,B] = new MyDoWith({ (w: W) =>
+    val (wp, r) = doer(w)
+    (wp, f(r))
+  })
+}
+
+// We can call it like before.
+val dwCounter: MyDoWith[Int,Int] = new MyDoWith(counter)
+dwCounter.apply(10)
+dwCounter(10)        // e(...) is a shorthand for e.apply(...) 
+
+val dwVarCounter: MyDoWith[Int,String] = dwCounter map { i => "var" + i }
+val (dw10,dwvarten) = dwVarCounter(10)
+val (dw11,dwvareleven) = dwVarCounter(dw10)
+
+// This threading of the "state" is still tedious and error prone.
+
+/***** flatMap *****/
 
 // Another common programming pattern is that we need to "sequence" work. What
 // if we have two pieces of work that each could "error" by returning "None.
@@ -182,6 +273,33 @@ def duplicate[A](l: List[A]): List[A] =
   l flatMap { a => List(a,a) }
 duplicate(List(1,2))
 
+// Back to DoWith. This is what we need to sequence the computation while
+// threading the state.
+sealed class MyBetterDoWith[W,R](doer: W => (W,R)) {
+  def apply(w: W) = doer(w)
+
+  def map[B](f: R => B): MyBetterDoWith[W,B] = new MyBetterDoWith({ (w: W) =>
+    val (wp, r) = doer(w)
+    (wp, f(r))
+  })
+
+  def flatMap[B](f: R => MyBetterDoWith[W,B]): MyBetterDoWith[W,B] = new MyBetterDoWith({ (w: W) =>
+    val (wp, r) = doer(w)
+    f(r)(wp)
+  })
+}
+
+val bdwCounter = new MyBetterDoWith(counter)
+val bdwVarCounter: MyBetterDoWith[Int,String] = bdwCounter map { i => "var" + i }
+
+// A sequencing of two bdwVarCounters
+(bdwVarCounter flatMap { _ => bdwVarCounter })(10)
+
+// A sequencing of two bdwCounters followed by string transformation
+(bdwCounter flatMap { _ => bdwCounter map { i => "var" + i } })(10)
+
+// The same sequencing of two bdwCounters using for-yield syntax
+(for { _ <- bdwCounter; i <- bdwCounter } yield "var" + i)(10)
 
 /***** DoWith *****/
 
@@ -242,7 +360,7 @@ def rename(env: Map[String, String], e: Expr)(i: Int): (Int,Expr) = e match {
 // Let's call this data type DoWith, which takes two type parameters W and R.
 // The W type parameter is the "state" type, while R is the "result" type.
 
-sealed class DoWith[W,+R](doer: W => (W,R)) {
+sealed class DoWith[W,R](doer: W => (W,R)) {
   def apply(w: W) = doer(w)
 
   def map[B](f: R => B): DoWith[W,B] = new DoWith[W,B]({

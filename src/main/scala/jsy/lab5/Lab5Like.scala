@@ -1,5 +1,6 @@
 package jsy.lab5
 
+import scala.collection.immutable.SortedMap
 import jsy.lab5.ast._
 import jsy.lab5.Parser.parse
 import jsy.util.{DoWith, JsyApplication}
@@ -20,7 +21,7 @@ trait Lab5Like { a: JsyApplication =>
 
   /* Map and MapFirst */
   def mapWith[W,A,B](l: List[A])(f: A => DoWith[W,B]): DoWith[W,List[B]]
-  def mapWith[W,A,B,C,D](m: Map[A,B])(f: ((A,B)) => DoWith[W,(C,D)]): DoWith[W,Map[C,D]]
+  def mapWith[W,A:Ordering,B,C:Ordering,D](m: SortedMap[A,B])(f: ((A,B)) => DoWith[W,(C,D)]): DoWith[W,SortedMap[C,D]]
   def mapFirstWith[W,A](l: List[A])(f: A => Option[DoWith[W,A]]): DoWith[W,List[A]]
 
   /* Type Inference */

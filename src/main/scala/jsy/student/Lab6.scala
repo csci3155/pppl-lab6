@@ -80,7 +80,7 @@ object Lab6 extends jsy.util.JsyApplication with Lab6Like {
      *   def map[U](f: T => U): ParseResult[U]
      * }
      * case class Success[T](result: T, next: Input) extends ParseResult[T]
-     * case class Failure(next: Input) extends ParseResult[Nothing]
+     * case class Failure(msg: String, next: Input) extends ParseResult[Nothing]
      */
 
     def re(next: Input): ParseResult[RegExpr] = union(next)
